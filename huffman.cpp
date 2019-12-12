@@ -253,7 +253,7 @@ void NenHuffman(char* inputFile,  char* huffname) {
 	unsigned char soBitCoNghia = 0;		// byte cuoi co the ko su dung het cac bit nen can luu so bit co nghia cua byte cuoi
 
 	unsigned char c;
-	unsigned char viTriBit = 7;			//Ghi chú: ý nghĩa của biến viTriBit?
+	unsigned char viTriBit = 7;			//Ghi chú: Lay bit tu trai sang phai
 	FILE* fi = fopen(inputFile, "rt");
 	FILE* f = fopen(huffname, "wb");
 
