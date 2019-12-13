@@ -301,7 +301,6 @@ bool DuyetPhai(int &index, char &c, int nRoot){
 
 
 
-
 void ReadFile(char* huffname, char* fileout){
 	FILE *f = fopen(huffname, "rb");
 	FILE *fi = fopen(fileout, "w");
@@ -321,23 +320,25 @@ void ReadFile(char* huffname, char* fileout){
 	char c = 0;
 
 	unsigned char out;
-	while (true){
-
+	while (!feof(f)){
 		fread(&out, sizeof(out), 1, f);
-		if (feof(f))
-			break;
-
 		for (int i = 7; i >= 0; i--)
 		{
 			if ((out >> i) & 1) {
-				if (DuyetPhai(index, c, nRoot) == true){
-
+				index = huffTree[index].nRight;
+				if (huffTree[index].nLeft == -1 && huffTree[index].nRight == -1)
+				{
+					c = huffTree[index].c;
+					index = nRoot;
 					fprintf(fi, "%c", c);
 				}
 			}
 			else {
-				if (DuyetTrai(index, c, nRoot) == true){
-
+				index = huffTree[index].nLeft;
+				if (huffTree[index].nLeft == -1 && huffTree[index].nRight == -1)
+				{
+					c = huffTree[index].c;
+					index = nRoot;
 					fprintf(fi, "%c", c);
 				}
 			}
@@ -377,5 +378,3 @@ void ReadFile(char* huffname, char* fileout){
 	fclose(f);
 	fclose(fi);
 }
-
-
