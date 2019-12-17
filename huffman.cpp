@@ -35,12 +35,13 @@ void KhoiTao() {
 	}
 }
 
-void ThongKeTanSoXuatHien(char* tenFile) {
+void ThongKeTanSoXuatHien(char* tenFile, size_t& size) {
 	FILE* fi = fopen(tenFile, "rt");
+	size = 0;
 	if (fi == NULL){
 		std::cout << "\nKhong tim thay file.";
 		return;
-	}	
+	}
 	unsigned char c;
 
 	while (1)	{
@@ -49,6 +50,7 @@ void ThongKeTanSoXuatHien(char* tenFile) {
 			break;
 		}
 		huffTree[c].freq++;
+		size++;
 	}
 
 	fclose(fi);
@@ -209,7 +211,7 @@ void XuatByte(unsigned char out, int soBitCoNghia, FILE* f) {
 	printf(" ");
 }
 
-void MaHoa1KyTu(unsigned char c,unsigned char &out, unsigned char &viTriBit, FILE* fo) {
+void MaHoa1KyTu(unsigned char c, unsigned char &out, unsigned char &viTriBit, FILE* fo) {
 	for (int i = 0; i < bangMaBit[c].soBit; i++) {
 		if (bangMaBit[c].bits[i] == 1) {
 			out = out | (1 << viTriBit);
@@ -217,7 +219,7 @@ void MaHoa1KyTu(unsigned char c,unsigned char &out, unsigned char &viTriBit, FIL
 		if (viTriBit == 0) { // da du 1 byte, ghi byte do ra file
 			viTriBit = 7;
 			fwrite(&out, sizeof(c), 1, fo);
-	
+
 			/*XuatByte(out, 8,f);*/
 			out = 0;
 		}
@@ -228,11 +230,11 @@ void MaHoa1KyTu(unsigned char c,unsigned char &out, unsigned char &viTriBit, FIL
 }
 
 
-void NenHuffman(char* inputFile,  char* huffname) {
+void NenHuffman(char* inputFile, char* huffname) {
 	// BUOC 1: thong ke tan suat xuat hien cua cac ki tu
 	KhoiTao();
-
-	ThongKeTanSoXuatHien(inputFile);
+	size_t size;
+	ThongKeTanSoXuatHien(inputFile, size);
 
 	//XuatBangThongKe();
 
@@ -253,10 +255,11 @@ void NenHuffman(char* inputFile,  char* huffname) {
 	unsigned char soBitCoNghia = 0;		// byte cuoi co the ko su dung het cac bit nen can luu so bit co nghia cua byte cuoi
 
 	unsigned char c;
-	unsigned char viTriBit = 7;			//Ghi chú: Lay bit tu trai sang phai
+	unsigned char viTriBit = 7;			//Ghi chú: ý nghĩa của biến viTriBit?
 	FILE* fi = fopen(inputFile, "rt");
 	FILE* f = fopen(huffname, "wb");
 
+	fwrite(&size, sizeof(size), 1, f);
 	fwrite(&nRoot, sizeof(nRoot), 1, f);
 	for (int i = 0; i <= nRoot; i++)
 		fwrite(&huffTree[i], sizeof(huffTree[i]), 1, f);
@@ -310,8 +313,10 @@ void ReadFile(char* huffname, char* fileout){
 		printf("open error!");
 		return;
 	}
-
+	size_t size;
 	int nRoot;
+	fread(&size, sizeof(size), 1, f);
+	//	std::cout << "\nSize: " << size;
 	fread(&nRoot, sizeof(nRoot), 1, f);
 	for (int i = 0; i <= nRoot; i++)
 		fread(&huffTree[i], sizeof(huffTree[i]), 1, f);
@@ -321,7 +326,8 @@ void ReadFile(char* huffname, char* fileout){
 	char c = 0;
 
 	unsigned char out;
-	while (true){
+	size_t cout = 0;
+	while (1){
 
 		fread(&out, sizeof(out), 1, f);
 		if (feof(f))
@@ -329,15 +335,17 @@ void ReadFile(char* huffname, char* fileout){
 
 		for (int i = 7; i >= 0; i--)
 		{
+			if (cout == size)
+				break;
 			if ((out >> i) & 1) {
 				if (DuyetPhai(index, c, nRoot) == true){
-
+					cout++;
 					fprintf(fi, "%c", c);
 				}
 			}
 			else {
 				if (DuyetTrai(index, c, nRoot) == true){
-
+					cout++;
 					fprintf(fi, "%c", c);
 				}
 			}
@@ -345,36 +353,10 @@ void ReadFile(char* huffname, char* fileout){
 		}
 	}
 
-	index = nRoot;
-	while (1){
-		if (DuyetTrai(index, c, nRoot) == true)
-			break;
-	}
-	index = nRoot;
-	int cout = 0;
-	char k;
-	for (int i = 7; i >= 0; i--)
-	{
-		if ((out >> i) & 1) {
-			if (DuyetPhai(index, k, nRoot) == true){
-			}
-		}
-		else {
-			if (DuyetTrai(index, k, nRoot) == true){
-				if (k == c)
-					cout++;
-			}
-		}
-
-	}
-
-
-	fseek(fi, -cout, SEEK_CUR);
-	for (int i = 0; i < cout; i++)
-		fputc(' ', fi);
 
 
 	fclose(f);
 	fclose(fi);
 }
+
 
